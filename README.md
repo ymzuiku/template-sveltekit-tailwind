@@ -1,38 +1,84 @@
-# create-svelte
+# 配置一个 SvelteKit SSR + 静态化 + TailwindCSS-jit 工程
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte);
+> 此文仅仅是做一个备忘记录，毫无含量，见谅
 
-## Creating a project
+SvelteKit 是一个基于 vite 的 SSR 工程，基本 0 配置。
 
-If you're seeing this, you've probably already done this step. Congrats!
+## 初始化 sveltekit 工程
 
-```bash
-# create a new project in the current directory
-npm init svelte@next
-
-# create a new project in my-app
+```
 npm init svelte@next my-app
 ```
 
-> Note: the `@next` is temporary
+初始化时，选择 eslint = yes, prettier = yes, typescript = yes
 
-## Developing
+## 安装 tailwindcss 相关
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+tailwindcss 开启 jit，编辑时立刻编译，闪电般的速度
 
-```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+```
+npm install -D @tailwindcss/jit tailwindcss postcss
+npx svelte-add tailwindcss  --jit
 ```
 
-## Building
+配置样式文件：
 
-Before creating a production version of your app, install an [adapter](https://kit.svelte.dev/docs#adapters) for your target environment. Then:
+src/routes/\_\_layout.svelte
 
-```bash
-npm run build
+```html
+<slot />
+
+<style global lang="postcss">
+	@tailwind base;
+	@tailwind components;
+	@tailwind utilities;
+	@tailwind screens;
+</style>
 ```
 
-> You can preview the built app with `npm run preview`, regardless of whether you installed an adapter. This should _not_ be used to serve your app in production.
+Ok，修改时自动编译 tailwindcss
+
+## 配置 ssr 和 static
+
+```sh
+npm install -D @sveltejs/adapter-node@next @sveltejs/adapter-static@next
+```
+
+修改 svelte.config.js
+
+```js
+import preprocess from 'svelte-preprocess';
+import adapterStatic from '@sveltejs/adapter-static';
+import adapterNode from '@sveltejs/adapter-node';
+
+/** @type {import('@sveltejs/kit').Config} */
+const config = {
+	// Consult https://github.com/sveltejs/svelte-preprocess
+	// for more information about preprocessors
+	preprocess: [
+		preprocess({
+			postcss: true
+		})
+	],
+	kit: {
+		// hydrate the <div id="svelte"> element in src/app.html
+		target: '#svelte',
+		adapter: process.env.ssr
+			? adapterNode({ out: 'dist' })
+			: adapterStatic({
+					pages: 'build',
+					assets: 'build',
+					fallback: null
+			  })
+	}
+};
+
+export default config;
+```
+
+编译：
+
+```sh
+npm run build # 编译静态化
+ssr=1 npm run build # 编译node-ssr
+```
