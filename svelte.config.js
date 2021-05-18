@@ -2,8 +2,6 @@ import preprocess from 'svelte-preprocess';
 import adapterStatic from '@sveltejs/adapter-static';
 import adapterNode from '@sveltejs/adapter-node';
 
-
-
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
 	// Consult https://github.com/sveltejs/svelte-preprocess
@@ -21,6 +19,16 @@ const config = {
 			assets:'build',
 			fallback: null,
 		}),
+		vite: {
+			server: {
+				proxy: {
+					"/api": {
+						target: "http://127.0.0.1:5000",
+						changeOrigin: true,
+					},
+				},
+			},
+		}
 	}
 };
 

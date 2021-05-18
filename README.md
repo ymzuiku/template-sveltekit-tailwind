@@ -38,7 +38,7 @@ src/routes/\_\_layout.svelte
 
 Ok，修改时自动编译 tailwindcss
 
-## 配置 ssr 和 static
+## 配置 ssr 和 static 和跨域代理
 
 ```sh
 npm install -D @sveltejs/adapter-node@next @sveltejs/adapter-static@next
@@ -69,7 +69,17 @@ const config = {
 					pages: 'build',
 					assets: 'build',
 					fallback: null
-			  })
+			  }),
+		vite: {
+			server: {
+				proxy: {
+					'/api': {
+						target: 'http://127.0.0.1:5000',
+						changeOrigin: true
+					}
+				}
+			}
+		}
 	}
 };
 
